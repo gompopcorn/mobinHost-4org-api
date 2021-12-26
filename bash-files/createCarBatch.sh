@@ -7,14 +7,13 @@ export $(xargs < ../.env)
 #                    Input Variables
 ##########################################################
 
-username=$1
-orgName=$2  # MUST be in lowerCase
-orgNumber=$3
-id=$4
-make=$5
-model=$6
-colour=$7
-owner=$8
+carNumber=$1
+numOfAdds=$2
+counter=1
+
+username=$3
+orgName=$4  # MUST be in lowerCase
+orgNumber=$5
 
 
 ##########################################################
@@ -52,23 +51,18 @@ export CORE_PEER_LOCALMSPID="Org${orgNumber}MSP"
 #               Add the asset to the Ledger
 ##########################################################
 
-peer chaincode invoke -o $ip_orderer_server:$port_orderer1 --ordererTLSHostnameOverride $addr_orderer1 \
---tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $channelName -n $chaincodeName \
---peerAddresses localhost:$port_org1_peer0 --tlsRootCertFiles $path_tlsRootCertFiles_org1 \
--c '{"function": "createCar", "Args":["'$id'", "'$make'", "'$model'", "'$colour'", "'$owner'"]}'
+while [ $counter -le $numOfAdds ]
+do
+
+    peer chaincode invoke -o $ip_orderer_server:$port_orderer1 --ordererTLSHostnameOverride $addr_orderer1 \
+    --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $channelName -n $chaincodeName \
+    --peerAddresses localhost:$port_org1_peer0 --tlsRootCertFiles $path_tlsRootCertFiles_org1 \
+    -c '{"function": "createCar", "Args":["ali_car_'$counter'", "Ford", "Mustang", "Black", "Alireza_'$counter'"]}' &
 
 
+    carNumber=$((carNumber + 1))
+    counter=$((counter + 1))
 
-# cat << EOF | docker exec --interactive cli bash
+    # sleep $delay
 
-#     export CORE_PEER_MSPCONFIGPATH=$CORE_PEER_MSPCONFIGPATH
-#     export CORE_PEER_ADDRESS=$CORE_PEER_ADDRESS
-#     export ORDERER_CA=$path_orderer_tls_ca
-#     export VERSION=$VERSION
-
-#     peer chaincode invoke -o $addr_orderer1:$port_orderer1 --ordererTLSHostnameOverride $addr_orderer1 \
-#     --tls --cafile $path_orderer_msp_ca -C $channelName -n $chaincodeName \
-#     --peerAddresses $addr_org1_peer0:$port_org1_peer0 --tlsRootCertFiles $path_tlsRootCertFiles_org1 \
-#     -c '{"function": "createCar", "Args":["$id", "$make", "$model", "$colour", "$owner"]}'
-
-# EOF
+done

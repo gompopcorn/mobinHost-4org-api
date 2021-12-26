@@ -73,7 +73,7 @@ async function registerUser(username, userOrg, res)
 
 
 // invoke transaction
-async function invokeTransaction(username, orgName, orgNumber, args, res)
+async function invokeTransactionBatch(username, orgName, orgNumber, args, res)
 {
     console.log(colors.blue(`*** Chaincode invoke for adding asset with key: ${args[0]} ***`));
 
@@ -98,6 +98,57 @@ async function invokeTransaction(username, orgName, orgNumber, args, res)
 }
 
 
+// invoke transaction intervally
+async function invokeTransaction(startFrom, numOfAssets, username, orgName, orgNumber, res)
+{
+    let shellResult = shell.exec(`${bashFilesDir}/createCarBatch.sh ${startFrom} ${numOfAssets} ${username} ${orgName.toLowerCase()} ${orgNumber}`, {silent: true, async: true}, (code, stdout, stderr) =>
+    {
+        let successCounter = 0;
+        let errorCounter = 0;
+
+        // split each output
+        let outputs = stderr.split('\n');
+
+        // count the outputs that have a meaning of failure
+        outputs.forEach(output =>
+        {
+            if (output.search("successful") != -1 || output.search("Successful") != -1 ) {
+                successCounter++;
+            }
+
+            else if(output.search("error") != -1 || output.search("Error") != -1 ) {
+                errorCounter++;
+            }
+            else if(output.search("no") != -1 || output.search("No") != -1 ) {
+                errorCounter++;
+            }
+            else if(output.search("not") != -1 || output.search("Not") != -1 ) {
+                errorCounter++;
+            }
+        });
+
+
+        if (code !== 0 || errorCounter) {
+            // console.log("Errors: " + errorCounter);
+            console.log(colors.bgRed("Error in createCarBatch.sh"));
+            console.log(colors.red(stderr));
+            return res.status(500).send(`* ${errorCounter} assets failed.`);
+        }
+    
+        else if (successCounter) {
+            // console.log("Successses: " + successCounter);
+            console.log(colors.green(`* Successfully added ${successCounter} assets from Number:${startFrom} to Number:${(startFrom-1) + numOfAssets}`));
+            return res.status(200).send(`* Successfully added ${successCounter} assets from Number:${startFrom} to Number:${(startFrom-1) + numOfAssets}`);
+        }
+
+        else {
+            console.log(colors.bgRed("Some Error occured."));
+            return res.status(500).send("Some Error occured.")
+        }
+    });
+}
+
+
 // check user existence
 async function checkUserExistence(username, orgName) 
 {
@@ -115,5 +166,6 @@ async function checkUserExistence(username, orgName)
 module.exports = {
     registerUser,
     invokeTransaction,
+    invokeTransactionBatch,
     checkUserExistence
 }

@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "chmod": "chmod +x ./bash-files/userActions.sh  &  sudo chmod +x ./bash-files/createCar.sh"
+    "chmod": "chmod +x ./bash-files/userActions.sh  &  sudo chmod +x ./bash-files/createCar.sh  &  sudo chmod +x ./bash-files/createCarBatch.sh"
   },
   "keywords": [],
   "author": "",
