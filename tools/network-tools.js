@@ -73,7 +73,7 @@ async function registerUser(username, userOrg, res)
 
 
 // invoke transaction
-async function invokeTransactionBatch(username, orgName, orgNumber, args, res)
+async function invokeTransaction(username, orgName, orgNumber, args, res)
 {
     console.log(colors.blue(`*** Chaincode invoke for adding asset with key: ${args[0]} ***`));
 
@@ -81,7 +81,7 @@ async function invokeTransactionBatch(username, orgName, orgNumber, args, res)
     // let chaincodeName = process.env.chaincodeName;
 
 
-    let shellResult = shell.exec(`${bashFilesDir}/createCar.sh ${username} ${orgName.toLowerCase()} ${orgNumber} \
+    shell.exec(`${bashFilesDir}/createCar.sh ${username} ${orgName.toLowerCase()} ${orgNumber} \
     ${args[0]} ${args[1]} ${args[2]} ${args[3]} ${args[4]}`, {silent: true, async: true}, (code, stdout, stderr) =>
     {
         if (code !== 0) {
@@ -99,9 +99,10 @@ async function invokeTransactionBatch(username, orgName, orgNumber, args, res)
 
 
 // invoke transaction intervally
-async function invokeTransaction(startFrom, numOfAssets, username, orgName, orgNumber, res)
+async function invokeTransactionBatch(startFrom, numOfAssets, username, orgName, orgNumber, res)
 {
-    let shellResult = shell.exec(`${bashFilesDir}/createCarBatch.sh ${startFrom} ${numOfAssets} ${username} ${orgName.toLowerCase()} ${orgNumber}`, {silent: true, async: true}, (code, stdout, stderr) =>
+    shell.exec(`${bashFilesDir}/createCarBatch.sh ${startFrom} ${numOfAssets} ${username} ${orgName.toLowerCase()} ${orgNumber}`, 
+    {silent: true, async: true}, (code, stdout, stderr) =>
     {
         let successCounter = 0;
         let errorCounter = 0;
@@ -112,17 +113,17 @@ async function invokeTransaction(startFrom, numOfAssets, username, orgName, orgN
         // count the outputs that have a meaning of failure
         outputs.forEach(output =>
         {
-            if (output.search("successful") != -1 || output.search("Successful") != -1 ) {
+            if (output.search("successful") != -1 || output.search("Successful") != -1) {
                 successCounter++;
             }
 
-            else if(output.search("error") != -1 || output.search("Error") != -1 ) {
+            else if(output.search("error") != -1 || output.search("Error") != -1) {
                 errorCounter++;
             }
-            else if(output.search("no") != -1 || output.search("No") != -1 ) {
+            else if(output.search("no") != -1 || output.search("No") != -1) {
                 errorCounter++;
             }
-            else if(output.search("not") != -1 || output.search("Not") != -1 ) {
+            else if(output.search("not") != -1 || output.search("Not") != -1) {
                 errorCounter++;
             }
         });
@@ -149,6 +150,102 @@ async function invokeTransaction(startFrom, numOfAssets, username, orgName, orgN
 }
 
 
+// invoke transaction intervally in separate files
+async function invokeTransactionBatch_MultiFile(startFrom, numOfAssets, username, orgName, orgNumber, res)
+{
+    let numOfFilesForMultiFileAdd = +process.env.numOfFilesForMultiFileAdd
+
+    // check the minimum assets needed for multiFile add asset
+    if (numOfAssets < numOfFilesForMultiFileAdd) {
+        return res.status(400).send(`At least ${numOfFilesForMultiFileAdd} assets are needed for this type of invokation.`)
+    }
+
+
+    let assetsEachFile = parseInt(numOfAssets / numOfFilesForMultiFileAdd);
+    let partialAssets = parseInt(numOfAssets % numOfFilesForMultiFileAdd);    // assets which could not be in equal parts
+    let partialStartFrom;   // startFrom parameter for each file
+
+    let doneFiles = 0;    // number of files which added all assets
+    let successCounter = 0;
+    let errorCounter = 0;
+    
+
+    for (let i = 0; i < numOfFilesForMultiFileAdd ; i++)
+    {
+        partialStartFrom = startFrom + (i * numOfFilesForMultiFileAdd);
+        
+        if (i === numOfFilesForMultiFileAdd - 1) {
+            assetsEachFile += partialAssets;
+        }
+
+
+        shell.exec(`${bashFilesDir}/createCarBatch.sh ${partialStartFrom} ${assetsEachFile} ${username} ${orgName.toLowerCase()} ${orgNumber}`, 
+        {silent: true, async: true}, (code, stdout, stderr) =>
+        {
+            // split each output
+            let outputs = stderr.split('\n');
+    
+            // count the outputs that have a meaning of failure
+            outputs.forEach(output =>
+            {
+                if (output.search("successful") != -1 || output.search("Successful") != -1) {
+                    successCounter++;
+                }
+    
+                else if(output.search("error") != -1 || output.search("Error") != -1) {
+                    errorCounter++;
+                }
+                else if(output.search("no") != -1 || output.search("No") != -1) {
+                    errorCounter++;
+                }
+                else if(output.search("not") != -1 || output.search("Not") != -1) {
+                    errorCounter++;
+                }
+            });
+    
+    
+            if (code !== 0 || errorCounter) 
+            {
+                console.log(colors.bgRed("Error in createCarBatch.sh"));
+                console.log(colors.red(stderr));
+
+                doneFiles++;
+                if (doneFiles === numOfFilesForMultiFileAdd) {
+                    return res.send(`* Some of the assets added but there are ${errorCounter} erros.`)
+                }
+            }
+        
+            else if (successCounter) 
+            {
+                doneFiles++;
+
+                if (doneFiles === numOfFilesForMultiFileAdd) 
+                {
+                    if (!errorCounter) {
+                        console.log(colors.green(`* Successfully added ${numOfAssets} assets from Number: ${startFrom} to Number: ${startFrom + numOfAssets -1}`));
+                        return res.send(`* Successfully added ${numOfAssets} assets from Number: ${startFrom} to Number: ${startFrom + numOfAssets -1}`)
+                    }
+
+                    else return res.send(`* Some of the assets added but there are ${errorCounter} erros.`)
+                }
+            }
+    
+            else {
+                console.log(colors.bgRed("Some Error occured."));
+                console.log(colors.red(stderr));
+
+                doneFiles++;
+                if (doneFiles === numOfFilesForMultiFileAdd) {
+                    return res.send(`* Some of the assets added but there are ${errorCounter} erros.`)
+                }
+            }
+        });
+    }
+
+
+}
+
+
 // check user existence
 async function checkUserExistence(username, orgName) 
 {
@@ -167,5 +264,6 @@ module.exports = {
     registerUser,
     invokeTransaction,
     invokeTransactionBatch,
+    invokeTransactionBatch_MultiFile,
     checkUserExistence
 }

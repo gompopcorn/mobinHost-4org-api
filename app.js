@@ -34,7 +34,7 @@ app.post('/users', (req, res) =>
     let orgNumber = +org.match(/\d/g).join("");
     let orgName = `Org${orgNumber}`
 
-    if (!(orgNumber) || orgNumber > 3) {
+    if (!orgNumber || orgNumber > 3) {
         return res.status(400).send("Org number can only be between 1 and 3")
     }
 
@@ -43,7 +43,7 @@ app.post('/users', (req, res) =>
 });
 
 
-app.post('/addAssetBatch', (req, res) => 
+app.post('/addAsset', (req, res) => 
 {
     let username = req.body.username;
     let org = req.body.orgName;
@@ -56,7 +56,7 @@ app.post('/addAssetBatch', (req, res) =>
     let orgNumber = +org.match(/\d/g).join("");
     let orgName = `Org${orgNumber}`
 
-    if (!(+orgNumber) || +orgNumber > 3) {
+    if (!orgNumber || orgNumber > 3) {
         return res.status(400).send("Org number can only be between 1 and 3")
     }
 
@@ -64,7 +64,7 @@ app.post('/addAssetBatch', (req, res) =>
 });
 
 
-app.post('/addAsset', (req, res) => 
+app.post('/addAssetBatch', (req, res) => 
 {
     let username = req.body.username;
     let org = req.body.orgName;
@@ -78,11 +78,34 @@ app.post('/addAsset', (req, res) =>
     let orgNumber = +org.match(/\d/g).join("");
     let orgName = `Org${orgNumber}`
 
-    if (!(+orgNumber) || +orgNumber > 3) {
+    if (!orgNumber || orgNumber > 3) {
         return res.status(400).send("Org number can only be between 1 and 3")
     }
 
-    return networkTools.invokeTransaction(startFrom, numOfAssets, username, orgName, orgNumber, res);
+    return networkTools.invokeTransactionBatch(startFrom, numOfAssets, username, orgName, orgNumber, res);
+});
+
+
+app.post('/addAssetBatch_multiFile', (req, res) => 
+{
+    let username = req.body.username;
+    let org = req.body.orgName;
+    let numOfAssets = +req.body.numOfAssets;
+    let startFrom = +req.body.startFrom;
+
+    if (!username || !org || !numOfAssets || !startFrom) {
+        return res.status(400).send("All fields are required.");
+    }
+
+    let orgNumber = +org.match(/\d/g).join("");
+    let orgName = `Org${orgNumber}`
+
+    if (!orgNumber || orgNumber > 3) {
+        return res.status(400).send("Org number can only be between 1 and 3")
+    }
+
+
+    return networkTools.invokeTransactionBatch_MultiFile(startFrom, numOfAssets, username, orgName, orgNumber, res);
 });
 
 
