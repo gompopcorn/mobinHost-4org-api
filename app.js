@@ -6,6 +6,10 @@ const colors = require('colors');
 const cors = require('cors');
 require('dotenv').config();
 
+// set the eventListerner limit to infinity
+// process.setMaxListeners(0);
+// require('events').EventEmitter.defaultMaxListeners = 0;
+
 
 // tools
 const networkTools = require(path.join(process.cwd(), 'tools/network-tools.js'));

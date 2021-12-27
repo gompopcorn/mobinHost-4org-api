@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# set high priority for this process
+pid=$$
+renice -n 19 -p $pid
+
 # export environment variables from .env file
 export $(xargs < ../.env)
 
@@ -39,12 +43,11 @@ org_dir="${PWD}/vm${orgNumber}/crypto-config/peerOrganizations/$orgName.example.
 
 
 export FABRIC_CFG_PATH=$fabric_samples_dir/config
+export CORE_PEER_LOCALMSPID="Org${orgNumber}MSP"
 export CORE_PEER_MSPCONFIGPATH=$org_dir/users/$username@$orgName.example.com/msp
 # export CORE_PEER_ADDRESS=$peer0_addr:$peer0_port
 export ORDERER_CA=$path_orderer_tls_ca
 export VERSION="1"
-
-export CORE_PEER_LOCALMSPID="Org${orgNumber}MSP"
 
 
 ##########################################################

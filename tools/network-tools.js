@@ -138,7 +138,7 @@ async function invokeTransactionBatch(startFrom, numOfAssets, username, orgName,
     
         else if (successCounter) {
             // console.log("Successses: " + successCounter);
-            console.log(colors.green(`* Successfully added ${successCounter} assets from Number:${startFrom} to Number:${(startFrom-1) + numOfAssets}`));
+            console.log(colors.green(`* Successfully added ${numOfAssets} assets - from "${startFrom}" to "${startFrom + numOfAssets -1}"`));
             return res.status(200).send(`* Successfully added ${successCounter} assets from Number:${startFrom} to Number:${(startFrom-1) + numOfAssets}`);
         }
 
@@ -170,6 +170,9 @@ async function invokeTransactionBatch_MultiFile(startFrom, numOfAssets, username
     let errorCounter = 0;
     
 
+    console.log(colors.blue(`*** Adding ${numOfAssets} assets - from "${startFrom}" to "${startFrom + numOfAssets -1}" ***`));
+
+
     for (let i = 0; i < numOfFilesForMultiFileAdd ; i++)
     {
         partialStartFrom = startFrom + (i * numOfFilesForMultiFileAdd);
@@ -180,7 +183,7 @@ async function invokeTransactionBatch_MultiFile(startFrom, numOfAssets, username
 
 
         shell.exec(`${bashFilesDir}/createCarBatch.sh ${partialStartFrom} ${assetsEachFile} ${username} ${orgName.toLowerCase()} ${orgNumber}`, 
-        {silent: true, async: true}, (code, stdout, stderr) =>
+        {silent: true, async: false}, (code, stdout, stderr) =>
         {
             // split each output
             let outputs = stderr.split('\n');
@@ -222,8 +225,8 @@ async function invokeTransactionBatch_MultiFile(startFrom, numOfAssets, username
                 if (doneFiles === numOfFilesForMultiFileAdd) 
                 {
                     if (!errorCounter) {
-                        console.log(colors.green(`* Successfully added ${numOfAssets} assets from Number: ${startFrom} to Number: ${startFrom + numOfAssets -1}`));
-                        return res.send(`* Successfully added ${numOfAssets} assets from Number: ${startFrom} to Number: ${startFrom + numOfAssets -1}`)
+                        console.log(colors.green(`* Successfully added ${numOfAssets} assets - from "${startFrom}" to "${startFrom + numOfAssets -1}"`));
+                        return res.send(`* Successfully added ${numOfAssets} assets - from "${startFrom}" to "${startFrom + numOfAssets -1}"`);
                     }
 
                     else return res.send(`* Some of the assets added but there are ${errorCounter} erros.`)
