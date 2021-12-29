@@ -66,17 +66,6 @@ do
     orderer_port="port_orderer${!selected_orderer}"
     peer_port="port_${orgName}_peer${selected_peer}"  
 
-    echo 
-    echo "*******************************" 
-    echo "*******************************" 
-    echo $selected_orderer
-    echo $orderer_addr
-    echo $orderer_port
-    echo $peer_port
-    echo "*******************************" 
-    echo "*******************************" 
-    echo  
-
 
     peer chaincode invoke -o $ip_orderer_server:${!orderer_port} --ordererTLSHostnameOverride ${!orderer_addr} \
     --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $channelName -n $chaincodeName \
