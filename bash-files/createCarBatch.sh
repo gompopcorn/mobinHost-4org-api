@@ -37,7 +37,7 @@ org_dir="${PWD}/vm${orgNumber}/crypto-config/peerOrganizations/$orgName.example.
 # selectPeer0Port="port_${orgName}_peer0"  
 # peer0_port=${!selectPeer0Port}
 
-# # select proper $path_org_users_in_cli from environment variables
+# # select proper $path_org_users from environment variables
 # select_path_org_users="path_${orgName}_users"  
 # path_org_users=${!select_path_org_users}
 
@@ -54,17 +54,39 @@ export VERSION="1"
 #               Add the asset to the Ledger
 ##########################################################
 
+selected_peer="0"
+peer0_orderer="1"
+peer1_orderer="1"
+
 while [ $counter -le $numOfAdds ]
 do
+    # select ports and addrs from environment variables
+    selected_orderer="peer${selected_peer}_orderer"
+    orderer_addr="addr_orderer${!selected_orderer}"
+    orderer_port="port_orderer${!selected_orderer}"
+    peer_port="port_${orgName}_peer${selected_peer}"  
 
-    peer chaincode invoke -o $ip_orderer_server:$port_orderer1 --ordererTLSHostnameOverride $addr_orderer1 \
+    echo 
+    echo "*******************************" 
+    echo "*******************************" 
+    echo $selected_orderer
+    echo $orderer_addr
+    echo $orderer_port
+    echo $peer_port
+    echo "*******************************" 
+    echo "*******************************" 
+    echo  
+
+
+    peer chaincode invoke -o $ip_orderer_server:${!orderer_port} --ordererTLSHostnameOverride ${!orderer_addr} \
     --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $channelName -n $chaincodeName \
-    --peerAddresses localhost:$port_org1_peer0 --tlsRootCertFiles $path_tlsRootCertFiles_org1 \
+    --peerAddresses localhost:${!peer_port} --tlsRootCertFiles $path_tlsRootCertFiles_org1 \
     -c '{"function": "createCar", "Args":["ali_car_'$counter'", "Ford", "Mustang", "Black", "Alireza_'$counter'"]}' &
 
 
     carNumber=$((carNumber + 1))
     counter=$((counter + 1))
+    selected_peer=$((!selected_peer))   # change the peer port to use another peer
 
     # sleep $delay
 
