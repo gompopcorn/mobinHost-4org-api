@@ -181,8 +181,12 @@ async function invokeTransactionBatch_MultiFile(startFrom, numOfAssets, username
             assetsEachFile += partialAssets;
         }
 
+        // peer to use
+        let selectedPeer;
+        if (i < numOfFilesForMultiFileAdd/2) selectedPeer = 0;
+        else selectedPeer = 1;
 
-        shell.exec(`${bashFilesDir}/createCarBatch.sh ${partialStartFrom} ${assetsEachFile} ${username} ${orgName.toLowerCase()} ${orgNumber}`, 
+        shell.exec(`${bashFilesDir}/createCarBatch.sh ${partialStartFrom} ${assetsEachFile} ${username} ${orgName.toLowerCase()} ${orgNumber} ${selectedPeer}`, 
         {silent: true, async: false}, (code, stdout, stderr) =>
         {
             // split each output

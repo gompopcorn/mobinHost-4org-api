@@ -19,6 +19,8 @@ username=$3
 orgName=$4  # MUST be in lowerCase
 orgNumber=$5
 
+selected_peer=$6    # peer number
+
 
 ##########################################################
 #               Paths, Addresses and Ports
@@ -54,7 +56,7 @@ export VERSION="1"
 #               Add the asset to the Ledger
 ##########################################################
 
-selected_peer="0"
+# selected_peer="0"
 peer0_orderer="1"
 peer1_orderer="1"
 
@@ -75,7 +77,7 @@ do
 
     carNumber=$((carNumber + 1))
     counter=$((counter + 1))
-    selected_peer=$((!selected_peer))   # change the peer port to use another peer
+    # selected_peer=$((!selected_peer))   # change the peer port to use another peer
 
     # sleep $delay
 
